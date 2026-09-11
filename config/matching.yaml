@@ -1,0 +1,91 @@
+alert_threshold: 50
+hard_reject_on_negative: false
+
+title_weight: 20
+description_weight: 8
+seniority_bonus: 10
+negative_weight: 15
+
+title_keywords:
+  - backend
+  - software engineer
+  - python
+  - php
+  - platform
+  - api
+  - applied ai
+  - machine learning engineer
+  - staff engineer
+  - infrastructure
+
+description_keywords:
+  - python
+  - fastapi
+  - django
+  - php
+  - laravel
+  - backend
+  - api
+  - postgres
+  - postgresql
+  - retrieval
+  - search
+  - llm
+
+negative_keywords:
+  - frontend
+  - ios
+  - android
+  - embedded
+  - intern
+
+seniority_keywords:
+  - senior
+  - staff
+  - principal
+  - lead
+
+location:
+  include:
+    - Netherlands
+    - Amsterdam
+    - Rotterdam
+    - Utrecht
+    - Eindhoven
+
+    - Germany
+    - Berlin
+    - Munich
+    - Hamburg
+
+    - Finland
+    - Helsinki
+    - Espoo
+
+    - Canada
+    - Toronto
+    - Vancouver
+    - Montreal
+    - Ottawa
+
+    - Sweden
+    - Stockholm
+
+    - Denmark
+    - Copenhagen
+
+    - Ireland
+    - Dublin
+
+    - United Kingdom
+    - London
+
+    - Europe
+    - European Union
+    - EU
+    - EMEA
+    - Remote
+
+  exclude:
+    - United States only
+    - US only

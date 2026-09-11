@@ -1,0 +1,257 @@
+# Curated companies with currently identifiable ATS sources supported by job-alert.
+# Keep the schema limited to fields expected by the registry importer.
+# Sponsorship is NEVER guaranteed by inclusion here; verify each vacancy.
+companies:
+  # Netherlands / Amsterdam-focused
+  - name: Flow Traders
+    website: https://www.flowtraders.com/
+    careers_url: https://job-boards.greenhouse.io/flowtraders
+    source_type: greenhouse
+    source_identifier: flowtraders
+    enabled: true
+    priority: high
+
+  - name: Optiver
+    website: https://www.optiver.com/
+    careers_url: https://job-boards.greenhouse.io/optiverus
+    source_type: greenhouse
+    source_identifier: optiverus
+    enabled: true
+    priority: high
+
+  - name: DataSnipper
+    website: https://www.datasnipper.com/
+    careers_url: https://jobs.ashbyhq.com/datasnipper
+    source_type: ashby
+    source_identifier: datasnipper
+    enabled: true
+    priority: high
+
+  - name: Protolabs
+    website: https://www.protolabs.com/
+    careers_url: https://jobs.lever.co/protolabs
+    source_type: lever
+    source_identifier: protolabs
+    enabled: true
+    priority: medium
+
+  - name: Insify
+    website: https://www.insify.nl/
+    careers_url: https://jobs.lever.co/insify
+    source_type: lever
+    source_identifier: insify
+    enabled: true
+    priority: medium
+
+  # Netherlands + other European offices
+  - name: Databricks
+    website: https://www.databricks.com/
+    careers_url: https://job-boards.greenhouse.io/databricks
+    source_type: greenhouse
+    source_identifier: databricks
+    enabled: true
+    priority: high
+
+  - name: Datadog
+    website: https://www.datadoghq.com/
+    careers_url: https://job-boards.greenhouse.io/datadog
+    source_type: greenhouse
+    source_identifier: datadog
+    enabled: true
+    priority: high
+
+  - name: GitLab
+    website: https://about.gitlab.com/
+    careers_url: https://job-boards.greenhouse.io/gitlab
+    source_type: greenhouse
+    source_identifier: gitlab
+    enabled: true
+    priority: high
+
+  - name: Grafana Labs
+    website: https://grafana.com/
+    careers_url: https://job-boards.greenhouse.io/grafanalabs
+    source_type: greenhouse
+    source_identifier: grafanalabs
+    enabled: true
+    priority: high
+
+  # Germany
+  - name: N26
+    website: https://n26.com/
+    careers_url: https://job-boards.greenhouse.io/n26
+    source_type: greenhouse
+    source_identifier: n26
+    enabled: true
+    priority: high
+
+  - name: HelloFresh
+    website: https://www.hellofreshgroup.com/
+    careers_url: https://job-boards.greenhouse.io/hellofresh
+    source_type: greenhouse
+    source_identifier: hellofresh
+    enabled: true
+    priority: high
+
+  - name: SoundCloud
+    website: https://soundcloud.com/
+    careers_url: https://job-boards.greenhouse.io/soundcloud71
+    source_type: greenhouse
+    source_identifier: soundcloud71
+    enabled: true
+    priority: high
+
+  - name: PPRO
+    website: https://www.ppro.com/
+    careers_url: https://jobs.lever.co/ppro
+    source_type: lever
+    source_identifier: ppro
+    enabled: true
+    priority: medium
+
+  - name: Contentful
+    website: https://www.contentful.com/
+    careers_url: https://job-boards.greenhouse.io/contentful
+    source_type: greenhouse
+    source_identifier: contentful
+    enabled: true
+    priority: high
+
+  - name: GetYourGuide
+    website: https://www.getyourguide.com/
+    careers_url: https://job-boards.greenhouse.io/getyourguide
+    source_type: greenhouse
+    source_identifier: getyourguide
+    enabled: true
+    priority: high
+
+  - name: Raisin
+    website: https://www.raisin.com/
+    careers_url: https://job-boards.eu.greenhouse.io/raisin
+    source_type: greenhouse
+    source_identifier: raisin
+    enabled: true
+    priority: high
+
+  - name: Staffbase
+    website: https://staffbase.com/
+    careers_url: https://job-boards.greenhouse.io/staffbase
+    source_type: greenhouse
+    source_identifier: staffbase
+    enabled: true
+    priority: medium
+
+  - name: commercetools
+    website: https://commercetools.com/
+    careers_url: https://job-boards.greenhouse.io/commercetools
+    source_type: greenhouse
+    source_identifier: commercetools
+    enabled: true
+    priority: high
+
+  - name: Urban Sports Club
+    website: https://urbansportsclub.com/
+    careers_url: https://job-boards.greenhouse.io/urbansportsclub
+    source_type: greenhouse
+    source_identifier: urbansportsclub
+    enabled: true
+    priority: medium
+
+  - name: Atolls
+    website: https://www.atolls.com/
+    careers_url: https://job-boards.greenhouse.io/atolls
+    source_type: greenhouse
+    source_identifier: atolls
+    enabled: true
+    priority: medium
+
+  # Finland
+  - name: Wolt
+    website: https://wolt.com/
+    careers_url: https://job-boards.greenhouse.io/wolt
+    source_type: greenhouse
+    source_identifier: wolt
+    enabled: true
+    priority: high
+
+  - name: Oura
+    website: https://ouraring.com/
+    careers_url: https://job-boards.greenhouse.io/oura
+    source_type: greenhouse
+    source_identifier: oura
+    enabled: true
+    priority: high
+
+  - name: AlphaSense
+    website: https://www.alpha-sense.com/
+    careers_url: https://job-boards.greenhouse.io/alphasense
+    source_type: greenhouse
+    source_identifier: alphasense
+    enabled: true
+    priority: high
+
+  - name: Smartly
+    website: https://www.smartly.io/
+    careers_url: https://job-boards.greenhouse.io/smartlyio
+    source_type: greenhouse
+    source_identifier: smartlyio
+    enabled: true
+    priority: high
+
+  # Canada
+  - name: StackAdapt
+    website: https://www.stackadapt.com/
+    careers_url: https://job-boards.greenhouse.io/stackadapt
+    source_type: greenhouse
+    source_identifier: stackadapt
+    enabled: true
+    priority: high
+
+  - name: Cohere
+    website: https://cohere.com/
+    careers_url: https://jobs.ashbyhq.com/cohere
+    source_type: ashby
+    source_identifier: cohere
+    enabled: true
+    priority: high
+
+  - name: Wealthsimple
+    website: https://www.wealthsimple.com/
+    careers_url: https://jobs.lever.co/wealthsimple
+    source_type: lever
+    source_identifier: wealthsimple
+    enabled: true
+    priority: high
+
+  - name: Faire
+    website: https://www.faire.com/
+    careers_url: https://job-boards.greenhouse.io/faire
+    source_type: greenhouse
+    source_identifier: faire
+    enabled: true
+    priority: high
+
+  - name: 1Password
+    website: https://1password.com/
+    careers_url: https://jobs.ashbyhq.com/1password
+    source_type: ashby
+    source_identifier: 1password
+    enabled: true
+    priority: high
+
+  - name: Okta
+    website: https://www.okta.com/
+    careers_url: https://job-boards.greenhouse.io/okta
+    source_type: greenhouse
+    source_identifier: okta
+    enabled: true
+    priority: high
+
+  # Other useful international targets
+  - name: Canonical
+    website: https://canonical.com/
+    careers_url: https://job-boards.greenhouse.io/canonical
+    source_type: greenhouse
+    source_identifier: canonical
+    enabled: true
+    priority: high
