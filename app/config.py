@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
 
+    healthchecks_ping_url: str | None = None
+
     @field_validator("database_url")
     @classmethod
     def database_url_must_be_present(cls, value: str) -> str:
@@ -40,7 +42,7 @@ class Settings(BaseSettings):
             raise ValueError("DATABASE_URL is required")
         return value.strip()
 
-    @field_validator("telegram_bot_token", "telegram_chat_id")
+    @field_validator("telegram_bot_token", "telegram_chat_id", "healthchecks_ping_url")
     @classmethod
     def empty_optional_to_none(cls, value: str | None) -> str | None:
         if value is None:

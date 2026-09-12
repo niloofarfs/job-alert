@@ -98,6 +98,7 @@ See `.env.example`. Important values:
 - `MISS_THRESHOLD` — consecutive successful polls a job must be missing before it is marked inactive (default `2`)
 - `NOTIFICATIONS_ENABLED` — `true` to send Telegram messages
 - `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` — required when notifications are enabled
+- `HEALTHCHECKS_PING_URL` — optional Healthchecks.io ping URL (leave empty to disable)
 - `MATCHING_CONFIG_PATH` / `COMPANIES_CONFIG_PATH`
 
 Configuration fails fast with a readable error when required values are missing.
@@ -193,6 +194,28 @@ https://...
 A Telegram failure does not roll back job ingestion. The notification row is
 stored as `failed` and retried on a later poll.
 
+## Healthchecks.io
+
+The scheduler pings [Healthchecks.io](https://healthchecks.io) after each real
+fetch cycle so a dead or hung process can page you. Telegram notifications for
+the check are configured in Healthchecks.io, not in this app.
+
+1. Create a **Simple** check.
+2. Set **Period** to the same value as `POLL_INTERVAL_SECONDS` (default **10 minutes**).
+3. Set **Grace** to **10 minutes**. Grace is both late-ping slack and the maximum
+   time allowed after a `/start` signal; a slow poll with ATS retries can take
+   several minutes. If the process dies without sending `/start`, an alert fires
+   after Period + Grace (~20 minutes at the defaults).
+4. Put the ping URL in `.env` as `HEALTHCHECKS_PING_URL`. Leave it empty to disable.
+5. Attach a Telegram notification on the check in the Healthchecks.io UI.
+
+Do not commit the ping URL. The app never logs it.
+
+A cycle that completes with zero new jobs is **healthy**. Every polled company
+failing is **not** — that sends `/fail` instead of success. Overlapping skipped
+polls do not ping. If you change `POLL_INTERVAL_SECONDS`, update the Healthchecks
+Period to match.
+
 ## Running manually
 
 ```bash
@@ -214,6 +237,7 @@ overlap lock as the scheduler.
 ```bash
 cp .env.example .env
 # Optional: set Telegram credentials and NOTIFICATIONS_ENABLED=true
+# Optional: set HEALTHCHECKS_PING_URL for an external heartbeat
 docker compose up --build
 ```
 

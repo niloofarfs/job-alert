@@ -1,19 +1,25 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+from pathlib import Path
 from uuid import UUID
 
 import httpx
+import pytest
+import respx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import Settings
-from app.db.models import Company, Notification
+from app.db.models import Company, Job, Notification
 from app.notifications.protocol import NotificationError
 from app.scheduler.poller import Poller
 from app.sources.errors import SourceNetworkError
 from app.sources.models import CompanyRef, SourceJob
 from tests.helpers import make_company, make_source_job
+
+HC_PING_URL = "https://hc-ping.com/11111111-1111-1111-1111-111111111111"
 
 
 class ScriptedAdapter:
@@ -206,3 +212,150 @@ async def test_overlapping_poll_is_skipped(
     assert skipped.skipped is True
     adapter._hold.set()
     await first
+
+
+def _enable_healthchecks(settings: Settings) -> None:
+    settings.healthchecks_ping_url = HC_PING_URL
+
+
+async def test_zero_new_jobs_sends_healthchecks_success(
+    settings: Settings, session_factory: async_sessionmaker[AsyncSession]
+) -> None:
+    _enable_healthchecks(settings)
+    await _add_company(session_factory)
+    adapter = ScriptedAdapter()
+    poller = await _poller(settings, session_factory, adapter, None)
+    async with respx.mock(assert_all_called=False) as router:
+        start = router.get(f"{HC_PING_URL}/start").mock(return_value=httpx.Response(200, text="OK"))
+        success = router.get(HC_PING_URL).mock(return_value=httpx.Response(200, text="OK"))
+        fail = router.get(f"{HC_PING_URL}/fail").mock(return_value=httpx.Response(200, text="OK"))
+        summary = await poller.run()
+    assert summary.companies_ok == 1
+    assert summary.new_jobs == 0
+    assert start.call_count == 1
+    assert success.call_count == 1
+    assert fail.call_count == 0
+
+
+async def test_all_sources_failing_sends_healthchecks_fail(
+    settings: Settings, session_factory: async_sessionmaker[AsyncSession]
+) -> None:
+    _enable_healthchecks(settings)
+    await _add_company(session_factory)
+    adapter = ScriptedAdapter()
+    adapter.errors["acme"] = SourceNetworkError("timeout")
+    poller = await _poller(settings, session_factory, adapter, None)
+    async with respx.mock(assert_all_called=False) as router:
+        start = router.get(f"{HC_PING_URL}/start").mock(return_value=httpx.Response(200, text="OK"))
+        success = router.get(HC_PING_URL).mock(return_value=httpx.Response(200, text="OK"))
+        fail = router.get(f"{HC_PING_URL}/fail").mock(return_value=httpx.Response(200, text="OK"))
+        summary = await poller.run()
+    assert summary.companies_ok == 0
+    assert summary.companies_failed == 1
+    assert start.call_count == 1
+    assert success.call_count == 0
+    assert fail.call_count == 1
+
+
+async def test_partial_source_failure_sends_healthchecks_success(
+    settings: Settings, session_factory: async_sessionmaker[AsyncSession]
+) -> None:
+    _enable_healthchecks(settings)
+    await _add_company(session_factory, source_identifier="ok")
+    await _add_company(
+        session_factory, name="Broken", source_identifier="broken", source_type="greenhouse"
+    )
+    adapter = ScriptedAdapter()
+    adapter.payloads["ok"] = [make_source_job()]
+    adapter.errors["broken"] = SourceNetworkError("timeout")
+    poller = await _poller(settings, session_factory, adapter, None)
+    async with respx.mock(assert_all_called=False) as router:
+        start = router.get(f"{HC_PING_URL}/start").mock(return_value=httpx.Response(200, text="OK"))
+        success = router.get(HC_PING_URL).mock(return_value=httpx.Response(200, text="OK"))
+        fail = router.get(f"{HC_PING_URL}/fail").mock(return_value=httpx.Response(200, text="OK"))
+        summary = await poller.run()
+    assert summary.companies_ok == 1
+    assert summary.companies_failed == 1
+    assert start.call_count == 1
+    assert success.call_count == 1
+    assert fail.call_count == 0
+
+
+async def test_unhandled_poll_error_sends_healthchecks_fail(
+    settings: Settings, session_factory: async_sessionmaker[AsyncSession]
+) -> None:
+    _enable_healthchecks(settings)
+    settings.matching_config_path = Path("/nonexistent/matching.yaml")
+    poller = await _poller(settings, session_factory, ScriptedAdapter(), None)
+    async with respx.mock(assert_all_called=False) as router:
+        start = router.get(f"{HC_PING_URL}/start").mock(return_value=httpx.Response(200, text="OK"))
+        success = router.get(HC_PING_URL).mock(return_value=httpx.Response(200, text="OK"))
+        fail = router.get(f"{HC_PING_URL}/fail").mock(return_value=httpx.Response(200, text="OK"))
+        with pytest.raises(FileNotFoundError):
+            await poller.run()
+    assert start.call_count == 1
+    assert success.call_count == 0
+    assert fail.call_count == 1
+
+
+async def test_overlapping_poll_does_not_ping_healthchecks(
+    settings: Settings, session_factory: async_sessionmaker[AsyncSession]
+) -> None:
+    _enable_healthchecks(settings)
+    await _add_company(session_factory)
+    adapter = ScriptedAdapter()
+    adapter.payloads["acme"] = [make_source_job()]
+    adapter._hold = asyncio.Event()
+    adapter._started = asyncio.Event()
+    poller = await _poller(settings, session_factory, adapter, None)
+    async with respx.mock(assert_all_called=False) as router:
+        start = router.get(f"{HC_PING_URL}/start").mock(return_value=httpx.Response(200, text="OK"))
+        success = router.get(HC_PING_URL).mock(return_value=httpx.Response(200, text="OK"))
+        fail = router.get(f"{HC_PING_URL}/fail").mock(return_value=httpx.Response(200, text="OK"))
+        first = asyncio.create_task(poller.run())
+        await adapter._started.wait()
+        skipped = await poller.run()
+        assert skipped.skipped is True
+        adapter._hold.set()
+        await first
+    assert start.call_count == 1
+    assert success.call_count == 1
+    assert fail.call_count == 0
+
+
+async def test_healthchecks_disabled_makes_no_http(
+    settings: Settings, session_factory: async_sessionmaker[AsyncSession]
+) -> None:
+    await _add_company(session_factory)
+    adapter = ScriptedAdapter()
+    poller = await _poller(settings, session_factory, adapter, None)
+    async with respx.mock(assert_all_called=False) as router:
+        router.route().mock(side_effect=AssertionError("unexpected HTTP"))
+        summary = await poller.run()
+    assert summary.companies_ok == 1
+    assert settings.healthchecks_ping_url is None
+
+
+async def test_healthchecks_failure_does_not_drop_jobs(
+    settings: Settings,
+    session_factory: async_sessionmaker[AsyncSession],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    _enable_healthchecks(settings)
+    caplog.set_level(logging.WARNING)
+    await _add_company(session_factory)
+    adapter = ScriptedAdapter()
+    adapter.payloads["acme"] = [make_source_job()]
+    poller = await _poller(settings, session_factory, adapter, None)
+    async with respx.mock(assert_all_called=False) as router:
+        router.get(f"{HC_PING_URL}/start").mock(side_effect=httpx.TimeoutException("timeout"))
+        router.get(HC_PING_URL).mock(return_value=httpx.Response(503, text="down"))
+        summary = await poller.run()
+    assert summary.companies_ok == 1
+    async with session_factory() as session:
+        jobs = (await session.execute(select(Job))).scalars().all()
+        company = (await session.execute(select(Company))).scalar_one()
+        assert len(jobs) == 1
+        assert company.baseline_completed_at is not None
+    assert "11111111-1111-1111-1111-111111111111" not in caplog.text
+    assert HC_PING_URL not in caplog.text

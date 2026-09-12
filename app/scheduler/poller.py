@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.clock import utcnow
 from app.config import Settings
 from app.db.models import Company, Job, Notification
+from app.healthchecks import HealthcheckSignal, fetch_cycle_is_healthy, send_healthcheck
 from app.jobs.normalize import normalize_source_job
 from app.jobs.reconcile import reconcile_company_jobs
 from app.matching.config import MatchingRules, load_matching_rules
@@ -80,6 +81,7 @@ class Poller:
         self.status.last_skipped = False
         self.status.last_error = None
         logger.info("poll_started interval_s=%s", self._settings.poll_interval_seconds)
+        await send_healthcheck(self._http, self._settings.healthchecks_ping_url, "start")
         try:
             rules = load_matching_rules(self._settings.matching_config_path)
             companies = await self._load_enabled_companies()
@@ -109,10 +111,20 @@ class Poller:
                 summary.new_jobs,
                 summary.notified,
             )
+            signal: HealthcheckSignal = (
+                "success"
+                if fetch_cycle_is_healthy(
+                    companies_ok=summary.companies_ok,
+                    companies_failed=summary.companies_failed,
+                )
+                else "fail"
+            )
+            await send_healthcheck(self._http, self._settings.healthchecks_ping_url, signal)
             return summary
         except Exception as exc:
             self.status.last_error = type(exc).__name__
             logger.exception("poll_failed error=%s", type(exc).__name__)
+            await send_healthcheck(self._http, self._settings.healthchecks_ping_url, "fail")
             raise
         finally:
             self.status.in_progress = False
