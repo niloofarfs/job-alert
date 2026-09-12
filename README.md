@@ -217,13 +217,11 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Then import companies (the app image includes `config/`):
+The container migrates the database and imports `config/companies.yaml` before uvicorn starts, so the first scheduled poll is not empty. `config/` is bind-mounted so you can edit YAML without rebuilding; re-import after edits with:
 
 ```bash
 docker compose exec app python -m app.cli import-companies
 ```
-
-The `config/` directory is bind-mounted so you can edit YAML without rebuilding.
 
 ## Polling and bootstrap semantics
 
